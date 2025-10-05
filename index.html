@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>📖 Il Diario Segreto dell’Amore</title>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        font-family: 'Georgia', cursive;
+        background: linear-gradient(135deg, #1e1f4b, #4b1e5a, #d4af37);
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Diario */
+    #book {
+        width: 600px;
+        height: 400px;
+        background: #fef9e7;
+        border: 5px solid #d4af37;
+        border-radius: 15px;
+        box-shadow: 0 0 30px rgba(0,0,0,0.6);
+        position: relative;
+        overflow: hidden;
+        transform-style: preserve-3d;
+        perspective: 2000px;
+    }
+
+    .page {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: #fffdf5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 22px;
+        font-weight: bold;
+        color: #4b1e5a;
+        text-align: center;
+        padding: 20px;
+        backface-visibility: hidden;
+        transition: transform 1s ease;
+    }
+
+    #cover {
+        background: #d4af37;
+        color: white;
+        font-size: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .hidden { display: none; }
+
+    /* Nuvoletta messaggi */
+    .bubble {
+        background: #fffdf5;
+        border: 2px solid #d4af37;
+        border-radius: 20px;
+        padding: 15px 20px;
+        max-width: 80%;
+        font-size: 20px;
+        color: #4b1e5a;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    /* Cuori gioco */
+    .heart {
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        background: red;
+        transform: rotate(45deg);
+        animation: float 4s linear infinite;
+        cursor: pointer;
+    }
+    .heart:before, .heart:after {
+        content: "";
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        background: red;
+        border-radius: 50%;
+    }
+    .heart:before { top: -15px; left: 0; }
+    .heart:after { left: -15px; top: 0; }
+
+    @keyframes float {
+        from { transform: translateY(0) rotate(45deg); opacity: 1; }
+        to { transform: translateY(-300px) rotate(45deg); opacity: 0; }
+    }
+
+    /* Stelle */
+    .star {
+        position: absolute;
+        width: 15px;
+        height: 15px;
+        background: yellow;
+        border-radius: 50%;
+        box-shadow: 0 0 10px gold;
+    }
+
+    /* Canvas scratch */
+    #scratchCanvas {
+        border: 2px solid #d4af37;
+        border-radius: 10px;
+    }
+</style>
+</head>
+<body>
+
+<div id="book">
+    <!-- Copertina -->
+    <div class="page" id="cover">
+        🔐 Diario Segreto<br>
+        <small>Tocca per aprire...</small>
+    </div>
+
+    <!-- Pagina 1: Cuori -->
+    <div class="page hidden" id="page1">
+        <div class="bubble">Clicca i cuori ❤️</div>
+    </div>
+
+    <!-- Pagina 2: Stelle -->
+    <div class="page hidden" id="page2">
+        <div class="bubble">Unisci le stelle ✨</div>
+    </div>
+
+    <!-- Pagina 3: Scratch -->
+    <div class="page hidden" id="page3">
+        <canvas id="scratchCanvas" width="300" height="200"></canvas>
+    </div>
+
+    <!-- Pagina finale -->
+    <div class="page hidden" id="finalPage">
+        <div class="bubble">Bea, tu sei la mia storia più bella ❤️</div>
+    </div>
+</div>
+
+<script>
+let currentPage = 0;
+const pages = ["cover","page1","page2","page3","finalPage"];
+
+// Apri copertina
+document.getElementById("cover").onclick = ()=>{
+    showPage(1);
+    startHearts();
+};
+
+function showPage(n){
+    pages.forEach((id,i)=>{
+        document.getElementById(id).classList.add("hidden");
+        if(i===n) document.getElementById(id).classList.remove("hidden");
+    });
+    currentPage = n;
+    if(n===1) startHearts();
+    if(n===2) startStars();
+    if(n===3) startScratch();
+}
+
+// Pagina 1 - Cuori
+function startHearts(){
+    let page = document.getElementById("page1");
+    let count = 0;
+    for(let i=0;i<5;i++){
+        let h = document.createElement("div");
+        h.classList.add("heart");
+        h.style.left = (50+ i*60)+"px";
+        h.style.bottom = "50px";
+        h.onclick = ()=>{
+            h.remove();
+            count++;
+            if(count===5){
+                alert("Ogni cuore che raccolgo è per te 💖");
+                showPage(2);
+            }
+        };
+        page.appendChild(h);
+    }
+}
+
+// Pagina 2 - Stelle
+function startStars(){
+    let page = document.getElementById("page2");
+    page.innerHTML = '<canvas id="starCanvas" width="400" height="300"></canvas>';
+    let c = document.getElementById("starCanvas");
+    let ctx = c.getContext("2d");
+    let stars = [{x:50,y:150},{x:350,y:150}];
+    stars.forEach(s=>{
+        ctx.beginPath();
+        ctx.arc(s.x,s.y,10,0,Math.PI*2);
+        ctx.fillStyle="gold";
+        ctx.fill();
+    });
+    let clicked=[];
+    c.addEventListener("click",(e)=>{
+        let rect = c.getBoundingClientRect();
+        let x = e.clientX-rect.left;
+        let y = e.clientY-rect.top;
+        stars.forEach((s,i)=>{
+            if(Math.hypot(x-s.x,y-s.y)<20){
+                clicked.push(i);
+                if(clicked.length===2){
+                    ctx.beginPath();
+                    ctx.moveTo(stars[0].x,stars[0].y);
+                    ctx.lineTo(stars[1].x,stars[1].y);
+                    ctx.strokeStyle="gold";
+                    ctx.lineWidth=3;
+                    ctx.stroke();
+                    alert("Con te ogni stella brilla più forte 🌙");
+                    showPage(3);
+                }
+            }
+        });
+    });
+}
+
+// Pagina 3 - Scratch
+function startScratch(){
+    let c = document.getElementById("scratchCanvas");
+    let ctx = c.getContext("2d");
+    ctx.fillStyle="gray";
+    ctx.fillRect(0,0,c.width,c.height);
+    ctx.globalCompositeOperation="destination-out";
+    c.addEventListener("mousemove",(e)=>{
+        if(e.buttons===1){
+            let rect=c.getBoundingClientRect();
+            let x=e.clientX-rect.left;
+            let y=e.clientY-rect.top;
+            ctx.beginPath();
+            ctx.arc(x,y,15,0,Math.PI*2);
+            ctx.fill();
+        }
+    });
+    c.addEventListener("touchmove",(e)=>{
+        let rect=c.getBoundingClientRect();
+        let x=e.touches[0].clientX-rect.left;
+        let y=e.touches[0].clientY-rect.top;
+        ctx.beginPath();
+        ctx.arc(x,y,20,0,Math.PI*2);
+        ctx.fill();
+    });
+    setTimeout(()=>{
+        alert("Sotto ogni segreto c’è il mio amore per te ❤️");
+        showPage(4);
+    },7000);
+}
+</script>
+</body>
+</html>
