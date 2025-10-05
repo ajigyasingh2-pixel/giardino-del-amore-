@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Il Giardino dei Sentimenti 🌸</title>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        background: linear-gradient(to bottom, #ffdde1, #ee9ca7);
+        font-family: 'Comic Sans MS', cursive;
+        height: 100vh;
+    }
+    canvas {
+        display: block;
+    }
+
+    /* Messaggi romantici */
+    #bubble {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        border-radius: 25px;
+        padding: 20px 30px;
+        max-width: 80%;
+        text-align: center;
+        font-size: 22px;
+        font-weight: bold;
+        color: #d6005c;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        border: 3px solid #ff6699;
+        display: none;
+        z-index: 10;
+    }
+
+    /* Petali che cadono sullo sfondo */
+    .petal {
+        position: absolute;
+        width: 15px;
+        height: 15px;
+        background: pink;
+        border-radius: 50% 50% 50% 0;
+        opacity: 0.8;
+        animation: fall linear infinite;
+    }
+    @keyframes fall {
+        0% { transform: translateY(-10px) rotate(0deg); opacity:1; }
+        100% { transform: translateY(110vh) rotate(360deg); opacity:0; }
+    }
+</style>
+</head>
+<body>
+
+<canvas id="gardenCanvas" width="800" height="600"></canvas>
+<div id="bubble"></div>
+
+<script>
+const canvas = document.getElementById("gardenCanvas");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let flowers = [];
+let plantedCount = 0;
+let finalShown = false;
+
+const messages = [
+    "Ti amo più di qualsiasi altra cosa, stellina ✨",
+    "Potrei rimanere ore e ore a guardare i tuoi occhi 💕",
+    "Bea, sei la mia felicità ogni giorno 💖",
+    "Con te ogni attimo è magico 🌹",
+    "Il mio cuore sarà sempre tuo, Bea 💘",
+    "Sei la mia stella che illumina la notte 🌙",
+    "Bea, senza di te nulla avrebbe senso 💞",
+    "Sei il mio sogno diventato realtà 🌸",
+    "Ogni fiore che cresce è un pensiero d’amore per te 🌺",
+    "Bea, questo giardino è cresciuto solo grazie al nostro amore ❤️"
+];
+
+// Disegna un fiore
+function drawFlower(x, y, scale=1){
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.scale(scale, scale);
+
+    // petali
+    for(let i=0;i<6;i++){
+        ctx.rotate(Math.PI/3);
+        ctx.beginPath();
+        ctx.fillStyle = `hsl(${Math.random()*360},70%,70%)`;
+        ctx.ellipse(0, -15, 10, 20, 0, 0, Math.PI*2);
+        ctx.fill();
+    }
+
+    // centro
+    ctx.beginPath();
+    ctx.fillStyle = "yellow";
+    ctx.arc(0,0,10,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.restore();
+}
+
+// Animazione di crescita
+function Flower(x,y){
+    this.x = x;
+    this.y = y;
+    this.scale = 0.1;
+    this.grown = false;
+}
+Flower.prototype.update = function(){
+    if(this.scale < 1){
+        this.scale += 0.02;
+    } else {
+        this.grown = true;
+    }
+    drawFlower(this.x, this.y, this.scale);
+}
+
+// Mostra messaggio
+function showMessage(text){
+    let bubble = document.getElementById("bubble");
+    bubble.textContent = "";
+    bubble.style.display = "block";
+    typeWriter(text, bubble);
+    setTimeout(()=>{ bubble.style.display="none"; }, 5000);
+}
+
+// Effetto macchina da scrivere
+function typeWriter(text, element, i=0){
+    if(i < text.length){
+        element.textContent += text.charAt(i);
+        setTimeout(()=>typeWriter(text, element, i+1), 55);
+    }
+}
+
+// Click/tap per piantare un fiore
+canvas.addEventListener("click", (e)=>{
+    if(finalShown) return;
+    let x = e.clientX;
+    let y = e.clientY;
+    let f = new Flower(x,y);
+    flowers.push(f);
+    plantedCount++;
+
+    // Mostra messaggio
+    if(plantedCount < messages.length){
+        showMessage(messages[plantedCount-1]);
+    }
+
+    if(plantedCount >= 10 && !finalShown){
+        setTimeout(()=>finale(), 1500);
+    }
+});
+
+// Finale
+function finale(){
+    finalShown = true;
+    showMessage(messages[messages.length-1]);
+}
+
+// Animazione principale
+function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    for(let f of flowers){
+        f.update();
+    }
+    requestAnimationFrame(animate);
+}
+animate();
+
+// Petali che cadono
+function createPetal(){
+    let petal = document.createElement("div");
+    petal.classList.add("petal");
+    document.body.appendChild(petal);
+    let size = Math.random()*15+10;
+    petal.style.width = size+"px";
+    petal.style.height = size+"px";
+    petal.style.left = Math.random()*100+"vw";
+    petal.style.animationDuration = (Math.random()*5+5)+"s";
+    setTimeout(()=>{ petal.remove(); },10000);
+}
+setInterval(createPetal, 500);
+
+</script>
+</body>
+</html>
